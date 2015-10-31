@@ -1,0 +1,7 @@
+import numpy
+import scikits.audiolab as audiolab
+
+data, sampling_rate, encoding = aiffread('Woodstock.aif')
+
+print data
+
