@@ -26,8 +26,8 @@ print data
 
 #data = [[1, 0], [2, 0], [3, 0], [2, 0], [1, 0]]
 
-chain_depth = 1
-bin_size = .05
+chain_depth = 2
+bin_size = 0.00001
 def start_val(i):   # An arbitrary unique value representing i spaces before the start of the audio that doesn't interfere with the audio values
                     # Since these are generally in the range (-1, 1)
     return -1-i
@@ -86,7 +86,9 @@ for i in range(new_data.size):
         if i - j < 0:
             val = start_val(j-i)
         else:
-            val = data[i - j][0] - data[i - j][0] % bin_size    # Currently only looking at once channel of the audio
+            val = new_data[i - j] - new_data[i - j] % bin_size    # Currently only looking at once channel of the audio
+
+        #print tc
         
         tc = tc[val]
     
