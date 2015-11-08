@@ -26,8 +26,8 @@ print data
 
 #data = [[1, 0], [2, 0], [3, 0], [2, 0], [1, 0]]
 
-chain_depth = 50
-bin_size = .05
+chain_depth = 2
+bin_size = 0.00001
 def start_val(i):   # An arbitrary unique value representing i spaces before the start of the audio that doesn't interfere with the audio values
                     # Since these are generally in the range (-1, 1)
     return -1-i
@@ -88,7 +88,7 @@ for i in range(new_data.size):
         print i / f.samplerate
     tc = chain[bucket_index]
     new_datum = 0
-
+    
     #print tc
     weighted_index = random.randrange(tc["sum"])
     for k in tc.keys():
