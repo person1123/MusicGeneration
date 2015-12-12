@@ -1,3 +1,4 @@
+import sys
 import numpy as np
 import scikits.audiolab as audiolab
 from keras.models import Sequential
@@ -11,36 +12,15 @@ f = audiolab.Sndfile('05 Woodstock.aif', 'r')
 seq_len = 10
 buckets = 2048
 hidden_layer_size = 256
+batch_size = 128
+np_epoch = 10
 
-data = (f.read_frames(f.nframes)[:,0] + 1.0)*(buckets/2)
+data = ((f.read_frames(f.nframes)[0:44100*5,0] + 1.0)*(buckets/2))
+data = data.astype(int)
 sampling_rate = f.samplerate
 nframes = f.nframes
 
 f.close()
-
-all_x = []
-all_y = []
-
-for i in range(44100):
-	train_x = data[i*seq_len:i*seq_len+seq_len].astype(int)
-	train_y = data[i*seq_len+seq_len].astype(int)
-
-	#categorical_x = []
-	#for x in train_x:
-	#	categorical = np.zeros(buckets)
-	#	categorical[x] = 1
-	#	categorical_x.append(categorical)
-
-	categorical_y = np.zeros(buckets)
-	categorical_y[train_y] = 1
-
-	#all_x.append(np.array(categorical_x))
-	all_y.append(categorical_y)
-	all_x.append(train_x)
-	#all_y.append(train_y)
-
-train_x = np.array(all_x)
-train_y = np.array(all_y)
 
 model = Sequential()
 model.add(Embedding(buckets, hidden_layer_size, input_length=seq_len))
@@ -49,12 +29,28 @@ model.add(Dense(input_dim=hidden_layer_size, output_dim=buckets, init="glorot_un
 model.add(Activation("softmax"))
 
 model.compile(loss="categorical_crossentropy", optimizer="rmsprop")
+loss = [0.0]
+ 
+for epoch in range(np_epoch):
+	max_h = len(data)/batch_size
+	for h in range((len(data)-seq_len-1)/batch_size):
+		sys.stdout.write("Epoch %d/%d step %d/%d loss = %f   \r" % (epoch+1,np_epoch,h+1,max_h, loss[0]))
+		sys.stdout.flush()
 
-#model.fit(train_x, train_y, nb_epoch=1000)
+		train_x = np.empty([batch_size, seq_len], dtype=int)
+		train_y = np.zeros([batch_size, buckets], dtype=int)
 
+		for i in range(batch_size):
+        		train_x[i] = data[batch_size*h+i:batch_size*h+i+seq_len]
+        		train_y[i][data[batch_size*h+i+seq_len]] = 1
 
-#model.save_weights("test.hdf", overwrite=True)
-model.load_weights("test.hdf")
+		loss = model.train_on_batch(train_x, train_y)
+
+	sys.stdout.write("Epoch %d/%d saving weights!        \r" % (epoch+1,np_epoch))
+	model.save_weights("test2.hdf", overwrite=True)
+	sys.stdout.write("Epoch %d/%d done!            \r" % (epoch+1,np_epoch))
+
+#model.load_weights("test.hdf")
 
 classes = model.predict_classes(train_x)
 print classes
