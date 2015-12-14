@@ -9,12 +9,12 @@ from keras.utils import np_utils, generic_utils
 
 f = audiolab.Sndfile('05 Woodstock.aif', 'r')
 
-seq_len = 10
+seq_len = 50
 buckets = 2048
 hidden_layer_size = 256
 batch_size = 128
 np_epoch = 10
-output_n_frames = 44100*3
+output_n_frames = 44100*1
 
 data = ((f.read_frames(f.nframes)[:,0] + 1.0)*(buckets/2))
 data = data.astype(int)
@@ -31,11 +31,21 @@ model.add(Activation("softmax"))
 
 model.compile(loss="categorical_crossentropy", optimizer="rmsprop")
  
-model.load_weights("test.hdf")
+model.load_weights("test2-epoch2.hdf")
 
 frames = np.empty(output_n_frames, dtype=int)
 
-frames[0:seq_len] = data[0:seq_len]
+start_frame = 30 * sampling_rate
+while data[start_frame] < 1500:
+	start_frame += 1
+	if start_frame % sampling_rate == 0:
+		print start_frame
+
+print "found start frame " + str(start_frame)
+
+frames[0:seq_len] = data[start_frame:start_frame + seq_len]
+
+print frames[0:seq_len]
 
 max_i = output_n_frames-seq_len
 for i in range(max_i):
@@ -45,7 +55,7 @@ for i in range(max_i):
 
 sys.stdout.write("Status Saving file...          \r")
 frames = frames/(buckets/2.0) - 1.0
-print frames
+print frames[0:seq_len * 2]
 
 f2 = audiolab.Sndfile('test.wav', 'w', audiolab.Format('wav'), 1, sampling_rate)
 

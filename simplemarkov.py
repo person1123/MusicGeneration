@@ -149,7 +149,6 @@ def gen(chain,filepath):
 
             # Compute the bucket_index for the next iteration
             val = (new_data[i] - new_data[i] % bin_size) / bin_size + 1 / bin_size
-            print val
             bucket_index = int((bucket_index * num_buckets + val) % (num_buckets ** chain_depth))
     finally:
         format = audiolab.Format('wav')

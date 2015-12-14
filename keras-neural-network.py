@@ -9,13 +9,14 @@ from keras.utils import np_utils, generic_utils
 
 f = audiolab.Sndfile('05 Woodstock.aif', 'r')
 
-seq_len = 10
+seq_len = 50
 buckets = 2048
 hidden_layer_size = 256
 batch_size = 128
 np_epoch = 10
 
-data = ((f.read_frames(f.nframes)[0:44100*5,0] + 1.0)*(buckets/2))
+#data = ((f.read_frames(f.nframes)[f.samplerate * 30:f.samplerate*45,0] + 1.0)*(buckets/2))
+data = ((f.read_frames(f.nframes)[:,0] + 1.0)*(buckets/2))
 data = data.astype(int)
 sampling_rate = f.samplerate
 nframes = f.nframes
@@ -47,7 +48,7 @@ for epoch in range(np_epoch):
 		loss = model.train_on_batch(train_x, train_y)
 
 	sys.stdout.write("Epoch %d/%d saving weights!        \r" % (epoch+1,np_epoch))
-	model.save_weights("test2.hdf", overwrite=True)
+	model.save_weights("test_sl%d_ep%d.hdf" % (seq_len, epoch), overwrite=True)
 	sys.stdout.write("Epoch %d/%d done!            \r" % (epoch+1,np_epoch))
 
 #model.load_weights("test.hdf")
