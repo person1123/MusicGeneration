@@ -25,7 +25,7 @@ def train(filepath, chain, chain_depth, bin_size):
         return
     
     data = f.read_frames(f.nframes)
-    data = data[30 * f.samplerate:45 * f.samplerate] # Clip 15 seconds
+    data = data[30 * f.samplerate:45 * f.samplerate]
 
     def start_val(i):   # An arbitrary unique value representing i spaces before the start of the audio that doesn't interfere with the audio values
                     # Since these are generally in the range (-1, 1)
@@ -45,7 +45,7 @@ def train(filepath, chain, chain_depth, bin_size):
     for i in range(chain_depth): # Sets all digits of the bucket index equal to the special value
 	   bucket_index = bucket_index * num_buckets + num_buckets - 1
     
-    num_nonuniq = 0
+    num_uniq = 0
 
     i = 0
     total_endpoints = 0
@@ -54,7 +54,7 @@ def train(filepath, chain, chain_depth, bin_size):
         if i % (5 * f.samplerate) == 0:   # Print progress every 5 seconds
             print i / f.samplerate
             if i != 0:
-                print "nonun: " + str(num_nonuniq * 1.0 / i)
+                print "un: " + str(num_uniq * 1.0 / i)
 
         tc = chain
         if bucket_index not in tc:
@@ -67,13 +67,13 @@ def train(filepath, chain, chain_depth, bin_size):
         val = (a - a % bin_size) / bin_size + 1 / bin_size
         bucket_index = int((bucket_index * num_buckets + val) % (num_buckets ** chain_depth)) # Shifts all digits of the bucket_index to the left, cuts off the highest digit, and adds a new rightmost digit.
 
-        if len(tc) > 0:
-            num_nonuniq += 1
-        total_endpoints += 1
-
         if data[i][0] not in tc:
             tc[data[i][0]] = 1
+            total_endpoints += 1
+            num_uniq += 1
         else:
+            if tc[data[i][0]] == 1:
+                num_uniq -= 1
             tc[data[i][0]] += 1
         if "sum" not in tc:
             tc["sum"] = 1
@@ -84,7 +84,7 @@ def train(filepath, chain, chain_depth, bin_size):
         if a not in uniq:
             uniq.append(a)
 
-    print "nonunique: " +str(num_nonuniq * 1.0 / len(data))
+    print "unique: " +str(num_uniq * 1.0 / len(data))
     return chain
 
 def write(chain, filepath):
